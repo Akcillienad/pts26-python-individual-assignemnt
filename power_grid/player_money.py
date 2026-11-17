@@ -3,7 +3,7 @@ from power_grid.simple_types import PlayerColor
 
 
 class PlayerMoney:
-
+    # initialize player money, color
     def __init__(self, color: PlayerColor, money: int = 50) -> None:
         self.color = color
 
