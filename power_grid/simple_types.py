@@ -21,4 +21,3 @@ class PlayerColor(Enum):
 @dataclass
 class RequestError:
     description: str
-

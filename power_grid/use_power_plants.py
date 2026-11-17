@@ -31,4 +31,4 @@ class UsePowerPlants:
             return RequestError("More resources than expected")
 
         return suppliable_towns
-
+    
