@@ -1,4 +1,4 @@
-from power_grid.simple_types import Resource, RequestError, Variant
+from power_grid.simple_types import Resource, RequestError
 from power_grid.power_plant import PowerPlant, PowerPlantNumber
 from power_grid.store_resources import StoreResources
 from power_grid.resource_market import ResourceMarket
@@ -77,7 +77,7 @@ class PlayerRescources:
         return None
 
     def usePowerPlant(self, ppns: list[PowerPlantNumber],
-                      resourcesToBurn: list[Resource]) -> Variant[int, RequestError]:
+                      resourcesToBurn: list[Resource]) -> int | RequestError:
 
         #each power plant can be used only once
         numbers = [ppn.number for ppn in ppns]
