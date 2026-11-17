@@ -1,4 +1,4 @@
-from power_grid.simple_types import Resource, RequestError, Variant
+from power_grid.simple_types import Resource, RequestError
 from power_grid.power_plant import PowerPlant, PowerPlantNumber
 from power_grid.store_resources import StoreResources
 from power_grid.resource_market import ResourceMarket
