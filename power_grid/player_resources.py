@@ -77,7 +77,7 @@ class PlayerRescources:
         return None
 
     def usePowerPlant(self, ppns: list[PowerPlantNumber],
-                      resourcesToBurn: list[Resource]) -> Variant[int, RequestError]:
+                      resourcesToBurn: list[Resource]) -> int | RequestError:
 
         #each power plant can be used only once
         numbers = [ppn.number for ppn in ppns]
