@@ -24,6 +24,19 @@ class PhaseStatus(Enum):
     GAME_ENDS = 3
 
 
+class GamePhase(Enum):
+    AUCTION_POWER_PLANTS = 1
+    BUY_RESOURCES = 2
+    BUY_HOUSES = 3
+    BUREAUCRACY = 4
+    GAME_END = 5
+
+
 @dataclass
 class RequestError:
     description: str
+
+
+@dataclass
+class SerializedGameState:
+    state: str
