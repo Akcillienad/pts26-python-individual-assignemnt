@@ -18,6 +18,12 @@ class PlayerColor(Enum):
     BLACK = 6
 
 
+class PhaseStatus(Enum):
+    PHASE_CONTINUES = 1
+    PHASE_ENDS = 2
+    GAME_ENDS = 3
+
+
 @dataclass
 class RequestError:
     description: str
