@@ -184,6 +184,19 @@ class InterfacePowerPlantMarketAuction(Protocol):
         ...
 
 
+class InterfacePlayerBoardAuction(Protocol):
+    def has_enough_money(self, amount: int) -> bool:
+        ...
+
+    def receive_power_plant(self, power_plant: PowerPlant, price: int) -> bool:
+        ...
+
+    def remove_power_plant(
+        self, ppn: PowerPlantNumber, removed_resources: Sequence[Resource]
+    ) -> RequestError | None:
+        ...
+
+
 class InterfaceAuctionPowerPlantsGameController(Protocol):
     def start_phase(self, player_order: list[PlayerColor]) -> None:
         ...
