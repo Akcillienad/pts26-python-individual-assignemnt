@@ -171,6 +171,19 @@ class InterfacePowerPlantMarketBureaucracy(Protocol):
         ...
 
 
+class InterfacePowerPlantMarketAuction(Protocol):
+    def can_take_power_plant(
+        self, ppn: PowerPlantNumber, price: int
+    ) -> RequestError | None:
+        ...
+
+    def take_power_plant(self, ppn: PowerPlantNumber) -> PowerPlant:
+        ...
+
+    def remove_discounted_power_plant(self) -> None:
+        ...
+
+
 class InterfaceAuctionPowerPlantsGameController(Protocol):
     def start_phase(self, player_order: list[PlayerColor]) -> None:
         ...
