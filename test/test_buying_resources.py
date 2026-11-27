@@ -155,7 +155,7 @@ class TestBuyingResources(unittest.TestCase):
         order = [PlayerColor.RED, PlayerColor.BLUE]
         phase = BuyingResources(self._boards(order))
 
-        inactive = {
+        inactive: dict[str, object] = {
             "is_active": False,
             "current_player": None,
             "remaining_players": [],
