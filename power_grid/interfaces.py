@@ -58,43 +58,54 @@ class PowerGridRulesGameInterface:
     def select_power_plant_to_bid(
         self, player_id: int, power_plant_number: int, first_bid: int
     ) -> SerializedGameState | RequestError:
-        assert False
+        raise NotImplementedError
 
     def do_not_want_power_plant(
         self, player_id: int
     ) -> SerializedGameState | RequestError:
-        assert False
+        raise NotImplementedError
 
     def bid_for_current_power_plant(
         self, player_id: int, bid: int
     ) -> SerializedGameState | RequestError:
-        assert False
+        raise NotImplementedError
 
     def do_not_bid_for_current_power_plant(
         self, player_id: int
     ) -> SerializedGameState | RequestError:
-        assert False
+        raise NotImplementedError
 
     def remove_power_plant(
         self, player_id: int, power_plant_number: int, removed_resources: str
     ) -> SerializedGameState | RequestError:
-        assert False
+        raise NotImplementedError
 
     def buy_resources(
         self, player_id: int, resources: str
     ) -> SerializedGameState | RequestError:
-        assert False
+        raise NotImplementedError
 
     def buy_houses(
         self, player_id: int, town_names: Sequence[str]
     ) -> SerializedGameState | RequestError:
-        assert False
+        raise NotImplementedError
 
     def use_power_plants(
         self, player_id: int, power_plant_numbers: Sequence[int],
         resources_to_burn: str,
     ) -> SerializedGameState | RequestError:
-        assert False
+        raise NotImplementedError
+
+    def get_state(self) -> SerializedGameState:
+        raise NotImplementedError
+
+
+class StepTransitionHandler(Protocol):
+    def start_step2(self) -> None:
+        ...
+
+    def start_step3(self) -> None:
+        ...
 
 
 class InterfaceResourceMarketPlayerBoard(Protocol):
@@ -290,6 +301,9 @@ class InterfacePowerPlantMarketGameController(Protocol):
     def is_step3_start(self) -> bool:
         ...
 
+    def to_string(self) -> str:
+        ...
+
 
 class InterfaceResourceMarketGameController(Protocol):
     def to_string(self) -> str:
@@ -298,6 +312,9 @@ class InterfaceResourceMarketGameController(Protocol):
 
 class InterfaceTownsGameController(Protocol):
     def get_number_of_houses(self, player: PlayerColor) -> int:
+        ...
+
+    def to_string(self) -> str:
         ...
 
 

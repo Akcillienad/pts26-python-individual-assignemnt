@@ -1,13 +1,6 @@
 from collections.abc import Sequence
-from typing import Protocol
 
-
-class StepTransitionHandler(Protocol):
-    def start_step2(self) -> None:
-        ...
-
-    def start_step3(self) -> None:
-        ...
+from power_grid.interfaces import StepTransitionHandler
 
 
 class CheckAndBumpStep:

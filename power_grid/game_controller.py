@@ -303,8 +303,14 @@ class GameController:
             "step": self._board.check_and_bump_step.get_step(),
             "player_order": [color.name for color in self._player_order],
             "phase_state": self._current_phase_state(),
+            "power_plant_market": _decode_json_or_raw(
+                self._board.power_plant_market.to_string()
+            ),
             "resource_market": _decode_json_or_raw(
                 self._board.resource_market.to_string()
+            ),
+            "towns": _decode_json_or_raw(
+                self._board.towns.to_string()
             ),
             "players": players_state,
             "game_result": [color.name for color in self._game_result],

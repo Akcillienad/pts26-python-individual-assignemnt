@@ -164,6 +164,9 @@ class PowerGridGameAdapter(PowerGridRulesGameInterface):
         )
         return self._finalize(error)
 
+    def get_state(self) -> SerializedGameState:
+        return SerializedGameState(self._controller.get_state())
+
     def _parse_player_id(self, player_id: int) -> PlayerColor | RequestError:
         if isinstance(player_id, bool):
             return RequestError(f"Unknown player_id: {player_id}")

@@ -400,3 +400,13 @@ class TestPowerGridGameAdapter(unittest.TestCase):
             assert isinstance(err, RequestError)
             self.assertIn("99", err.description)
         self.assertEqual(len(spy.calls), calls_before)
+
+    def test_get_state_returns_serialized_controller_state(self) -> None:
+        spy = SpyGameController('{"game_phase": "AUCTION_POWER_PLANTS"}')
+        adapter = PowerGridGameAdapter(spy)
+
+        result = adapter.get_state()
+        self.assertEqual(
+            result, SerializedGameState('{"game_phase": "AUCTION_POWER_PLANTS"}')
+        )
+        self.assertEqual(spy.get_state_calls, 1)

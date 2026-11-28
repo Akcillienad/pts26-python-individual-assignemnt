@@ -5,6 +5,13 @@ import json
 import unittest
 from collections.abc import Sequence
 from dataclasses import dataclass
+from test.blue_test_fakes import (
+    FakeAuctionPhase,
+    FakePowerPlantMarket,
+    FakeResourceMarket,
+    FakeTowns,
+    SimplePlayerBoardFake,
+)
 
 from power_grid.check_and_bump_step import CheckAndBumpStep
 from power_grid.game_controller import (
@@ -19,13 +26,6 @@ from power_grid.simple_types import (
     PlayerColor,
     RequestError,
     Resource,
-)
-from test.blue_test_fakes import (
-    FakeAuctionPhase,
-    FakePowerPlantMarket,
-    FakeResourceMarket,
-    FakeTowns,
-    SimplePlayerBoardFake,
 )
 
 
@@ -737,3 +737,15 @@ class TestGameController(unittest.TestCase):
         )
         self.assertTrue(auction.received_list)
         self.assertEqual(caller_resources, [Resource.COAL, Resource.OIL])
+
+    def test_get_state_includes_power_plant_market_and_towns(self) -> None:
+        harness = _build_harness([PlayerColor.RED, PlayerColor.BLUE])
+        harness.board.towns.set_house_count(PlayerColor.RED, 2)
+        parsed = json.loads(harness.controller.get_state())
+
+        self.assertIn("power_plant_market", parsed)
+        self.assertIn("towns", parsed)
+        self.assertEqual(parsed["towns"]["step"], 1)
+        self.assertEqual(
+            parsed["towns"]["houses"]["RED"], ["RED_0", "RED_1"]
+        )

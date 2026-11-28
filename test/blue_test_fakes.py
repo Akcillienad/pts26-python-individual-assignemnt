@@ -133,6 +133,16 @@ class FakePowerPlantMarket(InterfacePowerPlantMarketBuildingHouses):
         self.step_events.append("step3")
         self.step3_ready = False
 
+    def to_string(self) -> str:
+        return json.dumps(
+            {
+                "step3_ready": self.step3_ready,
+                "removed_thresholds": list(self.removed_thresholds),
+                "prepare_calls": self.prepare_calls,
+                "step_events": list(self.step_events),
+            }
+        )
+
 
 class FakeTowns(InterfaceTownsBuildingHouses):
     def __init__(
@@ -191,6 +201,17 @@ class FakeTowns(InterfaceTownsBuildingHouses):
     def start_step3(self) -> None:
         self.step = 3
         self.step_events.append("step3")
+
+    def to_string(self) -> str:
+        return json.dumps(
+            {
+                "step": self.step,
+                "houses": {
+                    player.name: list(towns)
+                    for player, towns in self._houses.items()
+                },
+            }
+        )
 
 
 class FakeResourcePool:
