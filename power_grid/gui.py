@@ -1,12 +1,22 @@
 from __future__ import annotations
 
+
+import sys
 import tkinter as tk
 from collections import Counter
 from collections.abc import Callable
+from pathlib import Path
 from tkinter import ttk
 
+# if __package__ in (None, ""):
+#     _REPO_ROOT = str(Path(__file__).resolve().parent.parent)
+#     if _REPO_ROOT not in sys.path:
+#         sys.path.insert(0, _REPO_ROOT)
+
+# pylint: disable=wrong-import-position
 from power_grid.factories import GameSession, create_standard_game
 from power_grid.gui_presenter import GameViewState, PowerGridGuiPresenter
+# pylint: enable=wrong-import-position
 
 _PLAYER_HEX: dict[str, str] = {
     "RED": "#d94343",
