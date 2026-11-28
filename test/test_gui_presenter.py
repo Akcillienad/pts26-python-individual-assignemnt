@@ -84,10 +84,14 @@ class FakeRulesGame(PowerGridRulesGameInterface):
         return SerializedGameState(self.state_json)
 
 
-def _sample_state_json(
+def _sample_state_json(  # pylint: disable=too-many-arguments
     phase: str = "AUCTION_POWER_PLANTS",
     stage: str | None = "SELECTING",
     current_player: str | None = "RED",
+    *,
+    is_first_round: bool = True,
+    row1: list[int] | None = None,
+    coal_market: int = 24,
 ) -> str:
     phase_state: dict[str, object] | None
     if phase == "GAME_END":
@@ -97,7 +101,7 @@ def _sample_state_json(
             "is_active": True,
             "current_player": current_player,
             "stage": stage,
-            "is_first_round": True,
+            "is_first_round": is_first_round,
             "eligible_players": ["RED", "YELLOW"],
             "remaining_players": ["RED", "YELLOW"],
             "current_plant": 3 if stage == "BIDDING" else None,
@@ -123,13 +127,13 @@ def _sample_state_json(
                 "is_step3": False,
                 "is_step3_start": False,
                 "is_first_power_plant_discounted": True,
-                "row1": [3, 4, 5, 6],
+                "row1": [3, 4, 5, 6] if row1 is None else row1,
                 "row2": [7, 8, 9, 10],
                 "deck_above_step3_count": 20,
                 "deck_below_step3_count": 0,
             },
             "resource_market": {
-                "coal": 24,
+                "coal": coal_market,
                 "oil": 18,
                 "garbage": 6,
                 "uranium": 2,
@@ -146,7 +150,7 @@ def _sample_state_json(
                 "RED": {
                     "color": "RED",
                     "money": 50,
-                    "power_plants": [3],
+                    "power_plants": [3, 10] if stage == "REMOVING_PLANT" else [3],
                     "resources": ["OIL"],
                 },
                 "YELLOW": {
@@ -349,5 +353,115 @@ class TestGuiPresenterAndTkApp(unittest.TestCase):
                 root.update_idletasks()
 
             self.assertEqual(app.presenter.view_state.game_phase, "GAME_END")
+        finally:
+            root.destroy()
+
+    def test_presenter_ui_projections_and_action_log(self) -> None:
+        base_session = create_standard_game(player_count=2, seed=1)
+        fake_game = FakeRulesGame(_sample_state_json(is_first_round=True))
+        presenter = PowerGridGuiPresenter(
+            GameSession(game=fake_game, metadata=base_session.metadata)
+        )
+        self.assertTrue(presenter.can_select_plant)
+        self.assertFalse(presenter.can_pass_selection)
+        self.assertEqual(presenter.phase_display_name(), "Phase 2: Auction Power Plants")
+        self.assertEqual(presenter.owned_resource_codes, frozenset({"O"}))
+        self.assertEqual(presenter.action_log[0], ("info", "New game started."))
+
+        # Round 2 SELECTING allows passing; empty row1 disables selection
+        fake_game.state_json = _sample_state_json(is_first_round=False, row1=[])
+        presenter.refresh()
+        self.assertTrue(presenter.can_pass_selection)
+        self.assertFalse(presenter.can_select_plant)
+
+        # REMOVING_PLANT excludes newly bought plant #10 from discardable options
+        fake_game.state_json = _sample_state_json(stage="REMOVING_PLANT")
+        presenter.refresh()
+        self.assertEqual(presenter.discardable_owned_plants, (3,))
+
+        # BUY_RESOURCES with 0 coal disables C chip
+        fake_game.state_json = _sample_state_json(
+            phase="BUY_RESOURCES", stage=None, coal_market=0
+        )
+        presenter.refresh()
+        self.assertEqual(
+            presenter.available_market_resource_codes, frozenset({"O", "G", "U"})
+        )
+
+    def test_tkinter_app_control_enablement_error_sync_and_shortcuts(
+        self,
+    ) -> None:
+        try:
+            root = tk.Tk()
+        except tk.TclError as exc:
+            self.skipTest(f"Tk display unavailable: {exc}")
+            return
+        root.withdraw()
+        try:
+            base_session = create_standard_game(player_count=2, seed=3)
+            fake_game = FakeRulesGame(_sample_state_json(is_first_round=True))
+            app = PowerGridApp(
+                root,
+                session_factory=lambda _c, _l: GameSession(
+                    game=fake_game, metadata=base_session.metadata
+                ),
+            )
+            # Round 1: Select & Bid enabled, Pass Selection disabled
+            states = app.action_button_states()
+            self.assertTrue(states["select_bid"])
+            self.assertFalse(states["pass_select"])
+
+            # Selecting market card #4 updates suggested bid to "4"
+            app.select_market_plant(4)
+            self.assertEqual(app.suggested_bid, "4")
+            app.trigger_primary_action()
+            self.assertEqual(fake_game.calls[-1], ("select", (1, 4, 4)))
+
+            # Backend RequestError updates error banner and action log
+            fake_game.next_result = RequestError("Too low")
+            app.trigger_primary_action()
+            self.assertEqual(app.error_banner_text, "Error: Too low")
+            self.assertEqual(app.presenter.action_log[-1][0], "error")
+
+            # Round 2 SELECTING enables Pass Selection; empty row1 disables Select & Bid
+            fake_game.state_json = _sample_state_json(
+                is_first_round=False, row1=[]
+            )
+            app.presenter.refresh()
+            app.refresh()
+            r2_states = app.action_button_states()
+            self.assertTrue(r2_states["pass_select"])
+            self.assertFalse(r2_states["select_bid"])
+
+            # BUY_RESOURCES disables +C when coal_market == 0
+            fake_game.state_json = _sample_state_json(
+                phase="BUY_RESOURCES", stage=None, coal_market=0
+            )
+            app.presenter.refresh()
+            app.refresh()
+            res_states = app.action_button_states()
+            self.assertFalse(res_states["add_buy_C"])
+            self.assertTrue(res_states["add_buy_O"])
+
+            # BUY_HOUSES disables Buy Houses/Clear until a city is toggled
+            fake_game.state_json = _sample_state_json(
+                phase="BUY_HOUSES", stage=None
+            )
+            app.presenter.refresh()
+            app.refresh()
+            h_before = app.action_button_states()
+            self.assertFalse(h_before["buy_houses"])
+            self.assertFalse(h_before["clear_houses"])
+            self.assertTrue(h_before["pass_houses"])
+
+            # Toggle city via public method & Esc clear
+            app.toggle_town("Essen")
+            h_selected = app.action_button_states()
+            self.assertTrue(h_selected["buy_houses"])
+            self.assertTrue(h_selected["clear_houses"])
+            app.clear_current_inputs()
+            h_cleared = app.action_button_states()
+            self.assertFalse(h_cleared["buy_houses"])
+            self.assertFalse(h_cleared["clear_houses"])
         finally:
             root.destroy()
