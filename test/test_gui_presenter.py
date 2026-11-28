@@ -327,6 +327,8 @@ class TestGuiPresenterAndTkApp(unittest.TestCase):
                     game=fake_game, metadata=base_session.metadata
                 ),
             )
+            # Discounted row1[0] auto-fills minimum bid "1" in SELECTING
+            self.assertEqual(app.suggested_bid, "1")
             # Simulate rendering across every UI phase/stage
             for phase, stage in (
                 ("AUCTION_POWER_PLANTS", "BIDDING"),
@@ -341,6 +343,9 @@ class TestGuiPresenterAndTkApp(unittest.TestCase):
                 )
                 app.presenter.pass_select_power_plant(1)
                 app.refresh()
+                if stage == "BIDDING":
+                    # current_bid is 4 -> auto-fills "5"
+                    self.assertEqual(app.suggested_bid, "5")
                 root.update_idletasks()
 
             self.assertEqual(app.presenter.view_state.game_phase, "GAME_END")

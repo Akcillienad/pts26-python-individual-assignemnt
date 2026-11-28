@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import unittest
 from collections.abc import Sequence
+from test.blue_test_fakes import SimplePlayerBoardFake
 
 from power_grid.buying_resources import BuyingResources
 from power_grid.simple_types import (
@@ -12,7 +13,6 @@ from power_grid.simple_types import (
     RequestError,
     Resource,
 )
-from test.blue_test_fakes import SimplePlayerBoardFake
 
 
 class TestBuyingResources(unittest.TestCase):

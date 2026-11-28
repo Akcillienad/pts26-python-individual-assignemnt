@@ -344,7 +344,8 @@ def _build_resource_system(
 ) -> tuple[ResourcePool, ResourceMarket]:
     pool = ResourcePool(
         resources=(
-            [Resource.OIL] * 6
+            [Resource.COAL] * 3
+            + [Resource.OIL] * 6
             + [Resource.GARBAGE] * 18
             + [Resource.URANIUM] * 10
         ),
@@ -353,7 +354,7 @@ def _build_resource_system(
     resource_market = ResourceMarket(
         pool=pool,
         starting_resources=(
-            [Resource.COAL] * 24
+            [Resource.COAL] * 21
             + [Resource.OIL] * 18
             + [Resource.GARBAGE] * 6
             + [Resource.URANIUM] * 2
@@ -433,13 +434,29 @@ def _build_board_components(
     return board, towns
 
 
+def _build_player_order(
+    player_count: int,
+    randomize_player_order: bool,
+    seed: int | None,
+) -> tuple[list[PlayerColor], dict[int, PlayerColor]]:
+    if not isinstance(randomize_player_order, bool):
+        raise ValueError("randomize_player_order must be a bool")
+    base_colors = list(PlayerColor)[:player_count]
+    id_to_color = {idx + 1: color for idx, color in enumerate(base_colors)}
+    order = list(base_colors)
+    if randomize_player_order:
+        random.Random(seed).shuffle(order)
+    return order, id_to_color
+
+
 def _build_game_adapter(
     *,
-    player_colors: list[PlayerColor],
+    player_order: list[PlayerColor],
+    id_to_color: dict[int, PlayerColor],
     player_boards: dict[PlayerColor, PlayerBoardFacade],
     board_components: GameBoardComponents,
     resolved_end_game: int,
-) -> tuple[PowerGridGameAdapter, dict[int, PlayerColor]]:
+) -> PowerGridGameAdapter:
     plant_market = board_components.power_plant_market
     resource_market = board_components.resource_market
     towns = board_components.towns
@@ -458,39 +475,41 @@ def _build_game_adapter(
         Bureaucracy(player_boards, resource_market, plant_market),
     )
     controller = GameController(
-        player_colors, player_boards, phases, board_components
+        player_order, player_boards, phases, board_components
     )
-    id_to_color = {idx + 1: color for idx, color in enumerate(player_colors)}
-    return PowerGridGameAdapter(controller, id_to_color), id_to_color
+    return PowerGridGameAdapter(controller, id_to_color)
 
 
-def create_standard_game(
+def create_standard_game(  # pylint: disable=too-many-arguments
     player_count: int = 3,
     *,
     starting_money: int = 50,
     end_game_town_count: int | None = None,
     shuffler: DeckShuffler | None = None,
     seed: int | None = None,
+    randomize_player_order: bool = False,
 ) -> GameSession:
     """Create a fully wired standard Power Grid Recharged game session."""
     resolved_end_game = _validate_factory_args(
         player_count, starting_money, end_game_town_count
     )
+    player_order, id_to_color = _build_player_order(
+        player_count, randomize_player_order, seed
+    )
     pool, resource_market = _build_resource_system(player_count)
     board_components, towns = _build_board_components(
         player_count, resource_market, _resolve_shuffler(shuffler, seed)
     )
-    player_colors = list(PlayerColor)[:player_count]
     max_plants = 4 if player_count == 2 else 3
-    player_boards = _build_player_boards(
-        player_colors,
-        starting_money,
-        max_plants,
-        PlayerBoardContext(resource_market, pool, towns),
-    )
-    adapter, id_to_color = _build_game_adapter(
-        player_colors=player_colors,
-        player_boards=player_boards,
+    adapter = _build_game_adapter(
+        player_order=player_order,
+        id_to_color=id_to_color,
+        player_boards=_build_player_boards(
+            player_order,
+            starting_money,
+            max_plants,
+            PlayerBoardContext(resource_market, pool, towns),
+        ),
         board_components=board_components,
         resolved_end_game=resolved_end_game,
     )

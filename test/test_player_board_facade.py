@@ -4,6 +4,12 @@ from __future__ import annotations
 import json
 import unittest
 from collections.abc import Sequence
+from test.blue_test_fakes import (
+    FakePlayerPowerPlants,
+    FakeResourceMarket,
+    FakeResourcePool,
+    FakeTowns,
+)
 
 from power_grid.player_board_facade import (
     PAYMENT_TABLE,
@@ -13,12 +19,6 @@ from power_grid.player_board_facade import (
 from power_grid.player_money import PlayerMoney
 from power_grid.power_plant import PowerPlant, PowerPlantNumber
 from power_grid.simple_types import PlayerColor, RequestError, Resource
-from test.blue_test_fakes import (
-    FakePlayerPowerPlants,
-    FakeResourceMarket,
-    FakeResourcePool,
-    FakeTowns,
-)
 
 
 class MutatingPlayerPowerPlants(FakePlayerPowerPlants):
@@ -101,7 +101,7 @@ class StrictListPlayerPowerPlants:
         self._plants.append(power_plant)
         return True
 
-    def remove_power_plant(
+    def remove_power_plant(  # pylint: disable=useless-return
         self, ppn: PowerPlantNumber, new_resources: list[Resource]
     ) -> RequestError | None:
         self.types_checked.append(isinstance(new_resources, list))

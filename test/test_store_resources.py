@@ -90,7 +90,7 @@ class TestStoreResources(unittest.TestCase):
         result = store.can_store_resources(resources, [])
 
         self.assertFalse(result)
-    
+
     def test_multiple_power_plants(self) -> None:
         plant1 = PowerPlant(
             PowerPlantNumber(10),
@@ -124,4 +124,3 @@ class TestStoreResources(unittest.TestCase):
         )
 
         self.assertTrue(result)
-

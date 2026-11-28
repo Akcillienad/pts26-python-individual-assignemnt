@@ -5,7 +5,6 @@ import json
 import unittest
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from test.blue_test_fakes import FakePlayerPowerPlants
 
 from power_grid.auction_power_plants import AuctionPowerPlants
 from power_grid.building_houses import BuildingHouses
@@ -23,6 +22,7 @@ from power_grid.player_board_facade import (
     PlayerBoardFacade,
 )
 from power_grid.player_money import PlayerMoney
+from power_grid.player_power_plants import PlayerPowerPlants
 from power_grid.power_grid_game_adapter import PowerGridGameAdapter
 from power_grid.power_plant import PowerPlant, PowerPlantNumber
 from power_grid.power_plant_market import PowerPlantMarket
@@ -51,25 +51,19 @@ def _reverse_shuffler(cards: list[PowerPlant]) -> None:
 
 
 def _refill_pattern() -> dict[int, dict[Resource, int]]:
+    rows = {
+        1: (4, 2, 1, 1),
+        2: (5, 3, 2, 1),
+        3: (3, 4, 3, 1),
+    }
     return {
-        1: {
-            Resource.COAL: 4,
-            Resource.OIL: 2,
-            Resource.GARBAGE: 1,
-            Resource.URANIUM: 1,
-        },
-        2: {
-            Resource.COAL: 5,
-            Resource.OIL: 3,
-            Resource.GARBAGE: 2,
-            Resource.URANIUM: 1,
-        },
-        3: {
-            Resource.COAL: 3,
-            Resource.OIL: 4,
-            Resource.GARBAGE: 3,
-            Resource.URANIUM: 1,
-        },
+        step: {
+            Resource.COAL: coal,
+            Resource.OIL: oil,
+            Resource.GARBAGE: garbage,
+            Resource.URANIUM: uranium,
+        }
+        for step, (coal, oil, garbage, uranium) in rows.items()
     }
 
 
@@ -135,7 +129,7 @@ def _build_full_game(
     boards = {
         color: PlayerBoardFacade(
             PlayerMoney(color, money_map.get(color, config.default_money)),
-            FakePlayerPowerPlants(max_plants=config.max_plants),
+            PlayerPowerPlants(max_plants=config.max_plants),
             context,
         )
         for color in order

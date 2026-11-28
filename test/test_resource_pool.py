@@ -1,9 +1,9 @@
-from power_grid.resource_market import ResourceMarket
-import unittest
 import json
+import unittest
 
-from power_grid.simple_types import Resource
+from power_grid.resource_market import ResourceMarket
 from power_grid.resource_pool import ResourcePool
+from power_grid.simple_types import Resource
 
 
 class TestResourcePool(unittest.TestCase):
@@ -107,7 +107,7 @@ class TestResourcePool(unittest.TestCase):
 
         self.assertEqual(result["resources"], ["COAL", "OIL"])
         self.assertEqual(result["storage_space"], ["URANIUM"])
-    
+
     def test_with_resource_market(self) -> None:
 
         pool = ResourcePool(
@@ -159,4 +159,3 @@ class TestResourcePool(unittest.TestCase):
         market.take_resources([Resource.URANIUM])
 
         self.assertEqual(pool.storage_space, [])
-

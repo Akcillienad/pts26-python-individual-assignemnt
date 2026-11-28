@@ -62,6 +62,8 @@ class TestFactories(unittest.TestCase):
                 assert isinstance(pool, dict)
                 pool_res = pool["resources"]
                 assert isinstance(pool_res, list)
+                self.assertEqual(rm["coal"], 21)
+                self.assertEqual(pool_res.count("COAL"), 3)
                 self.assertEqual(
                     rm["coal"] + pool_res.count("COAL"),
                     ResourceMarket.MAX_RESOURCES[Resource.COAL],
@@ -108,6 +110,25 @@ class TestFactories(unittest.TestCase):
             create_standard_game(
                 shuffler="not_callable"  # type: ignore[arg-type]
             )
+        with self.assertRaises(ValueError):
+            create_standard_game(
+                randomize_player_order="yes"  # type: ignore[arg-type]
+            )
+
+        rand_a = create_standard_game(
+            player_count=5, seed=99, randomize_player_order=True
+        )
+        rand_b = create_standard_game(
+            player_count=5, seed=99, randomize_player_order=True
+        )
+        self.assertEqual(rand_a.game.get_state(), rand_b.game.get_state())
+        order_a = json.loads(rand_a.game.get_state().state)["player_order"]
+        self.assertEqual(
+            set(order_a), {"RED", "YELLOW", "BLUE", "GREEN", "PURPLE"}
+        )
+        self.assertNotEqual(
+            order_a, ["RED", "YELLOW", "BLUE", "GREEN", "PURPLE"]
+        )
 
     def test_play_complete_game_via_power_grid_rules_interface(self) -> None:
         def no_shuffle(_cards: list[PowerPlant]) -> None:

@@ -1,13 +1,15 @@
-from power_grid.simple_types import Resource, RequestError
-from power_grid.power_plant import PowerPlant, PowerPlantNumber
-from power_grid.store_resources import StoreResources
-from power_grid.resource_market import ResourceMarket
-from power_grid.player_money import PlayerMoney
+# pylint: disable=invalid-name
 from typing import Optional
+
+from power_grid.player_money import PlayerMoney
+from power_grid.power_plant import PowerPlant, PowerPlantNumber
+from power_grid.resource_market import ResourceMarket
+from power_grid.simple_types import RequestError, Resource
+from power_grid.store_resources import StoreResources
 
 
 class PlayerRescources:
-    def __init__(self, # pylint: disable=too-many-arguments
+    def __init__(self,  # pylint: disable=too-many-arguments
                  resources: list[Resource],
                  power_plants: list[PowerPlant],
                  store: StoreResources,
@@ -19,7 +21,9 @@ class PlayerRescources:
         self._market = market
         self._money = money
 
-    def removePowerPlant(self,ppn: PowerPlantNumber, removedResources: list[Resource])-> Optional[RequestError]:
+    def removePowerPlant(
+        self, ppn: PowerPlantNumber, removedResources: list[Resource]
+    ) -> Optional[RequestError]:
         power_plants = self._power_plants.copy()
 
         #Finds correct power plant

@@ -17,10 +17,7 @@ class PlayerMoney:
         if amount < 0:
             return False
 
-        if self.current_money >= amount:
-            return True
-        else:
-            return False
+        return self.current_money >= amount
 
     # Add money to player
     def receive_money(self, amount: int) -> None:

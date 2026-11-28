@@ -4,6 +4,11 @@ from __future__ import annotations
 import json
 import unittest
 from collections.abc import Sequence
+from test.blue_test_fakes import (
+    FakePowerPlantMarket,
+    FakeResourceMarket,
+    SimplePlayerBoardFake,
+)
 
 from power_grid.bureaucracy import Bureaucracy
 from power_grid.power_plant import PowerPlantNumber
@@ -12,11 +17,6 @@ from power_grid.simple_types import (
     PlayerColor,
     RequestError,
     Resource,
-)
-from test.blue_test_fakes import (
-    FakePowerPlantMarket,
-    FakeResourceMarket,
-    SimplePlayerBoardFake,
 )
 
 

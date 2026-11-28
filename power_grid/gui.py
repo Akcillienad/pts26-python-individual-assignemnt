@@ -1,22 +1,12 @@
 from __future__ import annotations
 
-
-import sys
 import tkinter as tk
 from collections import Counter
 from collections.abc import Callable
-from pathlib import Path
 from tkinter import ttk
 
-# if __package__ in (None, ""):
-#     _REPO_ROOT = str(Path(__file__).resolve().parent.parent)
-#     if _REPO_ROOT not in sys.path:
-#         sys.path.insert(0, _REPO_ROOT)
-
-# pylint: disable=wrong-import-position
 from power_grid.factories import GameSession, create_standard_game
 from power_grid.gui_presenter import GameViewState, PowerGridGuiPresenter
-# pylint: enable=wrong-import-position
 
 _PLAYER_HEX: dict[str, str] = {
     "RED": "#d94343",
@@ -300,6 +290,10 @@ class PowerGridApp:  # pylint: disable=too-many-instance-attributes
     def presenter(self) -> PowerGridGuiPresenter:
         return self._presenter
 
+    @property
+    def suggested_bid(self) -> str:
+        return self._bid_var.get()
+
     def refresh(self) -> None:
         self._refresh_ui()
 
@@ -400,6 +394,27 @@ class PowerGridApp:  # pylint: disable=too-many-instance-attributes
                 font=("TkDefaultFont", 10, "bold"),
             ).pack(side=tk.LEFT, padx=8, pady=6)
 
+    def _suggested_selecting_bid(self, state: GameViewState) -> str:
+        raw = self._plant_choice_var.get().strip()
+        if not raw.isdigit():
+            return "1"
+        plant_num = int(raw)
+        pm = state.power_plant_market
+        if (
+            pm.is_first_power_plant_discounted
+            and pm.row1
+            and pm.row1[0] == plant_num
+        ):
+            return "1"
+        return str(plant_num)
+
+    def _on_plant_choice_changed(
+        self, _event: tk.Event[ttk.Combobox]
+    ) -> None:
+        self._bid_var.set(
+            self._suggested_selecting_bid(self._presenter.view_state)
+        )
+
     def _build_auction_controls(self, state: GameViewState) -> None:
         phase_state = state.phase_state
         stage = phase_state.stage if phase_state is not None else None
@@ -407,16 +422,20 @@ class PowerGridApp:  # pylint: disable=too-many-instance-attributes
             plants = [str(num) for num in state.power_plant_market.row1]
             if self._plant_choice_var.get() not in plants:
                 self._plant_choice_var.set(plants[0] if plants else "")
+            if self._presenter.last_error is None:
+                self._bid_var.set(self._suggested_selecting_bid(state))
             ttk.Label(self._action_frame, text="Plant:").pack(
                 side=tk.LEFT, padx=4
             )
-            ttk.Combobox(
+            combo = ttk.Combobox(
                 self._action_frame,
                 textvariable=self._plant_choice_var,
                 values=plants,
                 width=6,
                 state="readonly",
-            ).pack(side=tk.LEFT, padx=4)
+            )
+            combo.bind("<<ComboboxSelected>>", self._on_plant_choice_changed)
+            combo.pack(side=tk.LEFT, padx=4)
             ttk.Label(self._action_frame, text="Bid:").pack(
                 side=tk.LEFT, padx=4
             )
@@ -434,6 +453,11 @@ class PowerGridApp:  # pylint: disable=too-many-instance-attributes
                 command=self._handle_pass_select,
             ).pack(side=tk.LEFT, padx=4)
         elif stage == "BIDDING" and phase_state is not None:
+            if (
+                self._presenter.last_error is None
+                and phase_state.current_bid is not None
+            ):
+                self._bid_var.set(str(phase_state.current_bid + 1))
             info = (
                 f"Plant #{phase_state.current_plant} | "
                 f"Current Bid: {phase_state.current_bid}E "

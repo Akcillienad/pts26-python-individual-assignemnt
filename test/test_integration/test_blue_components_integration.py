@@ -5,6 +5,11 @@ import json
 import unittest
 from collections.abc import Sequence
 from dataclasses import dataclass
+from test.blue_test_fakes import (
+    FakePlayerPowerPlants,
+    FakePowerPlantMarket,
+    FakeTowns,
+)
 
 from power_grid.building_houses import BuildingHouses
 from power_grid.bureaucracy import Bureaucracy
@@ -31,11 +36,6 @@ from power_grid.simple_types import (
     RequestError,
     Resource,
     SerializedGameState,
-)
-from test.blue_test_fakes import (
-    FakePlayerPowerPlants,
-    FakePowerPlantMarket,
-    FakeTowns,
 )
 
 

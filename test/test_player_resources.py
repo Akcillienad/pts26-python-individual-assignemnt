@@ -1,4 +1,4 @@
-# pylint: disable=protected-access
+# pylint: disable=protected-access, too-many-public-methods
 import json
 import unittest
 from typing import Sequence
